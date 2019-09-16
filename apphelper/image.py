@@ -13,7 +13,7 @@ def base64_to_PIL(string):
     """
     base64 string to PIL
     """
-    try:    
+    try:
             base64_data = base64.b64decode(string)
             buf = six.BytesIO()
             buf.write(base64_data)
@@ -22,8 +22,8 @@ def base64_to_PIL(string):
             return img
     except:
         return None
-    
-    
+
+
 def PIL_to_base64(image):
     output = BytesIO()
     image.save(output,format='png')
@@ -40,7 +40,7 @@ def solve(box):
      y = cy-h/2
      x1-cx = -w/2*cos(angle) +h/2*sin(angle)
      y1 -cy= -w/2*sin(angle) -h/2*cos(angle)
-     
+
      h(x1-cx) = -wh/2*cos(angle) +hh/2*sin(angle)
      w(y1 -cy)= -ww/2*sin(angle) -hw/2*cos(angle)
      (hh+ww)/2sin(angle) = h(x1-cx)-w(y1 -cy)
@@ -48,12 +48,12 @@ def solve(box):
      """
      x1,y1,x2,y2,x3,y3,x4,y4= box[:8]
      cx = (x1+x3+x2+x4)/4.0
-     cy = (y1+y3+y4+y2)/4.0  
+     cy = (y1+y3+y4+y2)/4.0
      w = (np.sqrt((x2-x1)**2+(y2-y1)**2)+np.sqrt((x3-x4)**2+(y3-y4)**2))/2
-     h = (np.sqrt((x2-x3)**2+(y2-y3)**2)+np.sqrt((x1-x4)**2+(y1-y4)**2))/2   
+     h = (np.sqrt((x2-x3)**2+(y2-y3)**2)+np.sqrt((x1-x4)**2+(y1-y4)**2))/2
      #x = cx-w/2
      #y = cy-h/2
-     
+
      sinA = (h*(x1-cx)-w*(y1 -cy))*1.0/(h*h+w*w)*2
      if abs(sinA)>1:
             angle = None
@@ -68,7 +68,7 @@ def xy_rotate_box(cx,cy,w,h,angle):
     x_new = (x-cx)*cos(angle) - (y-cy)*sin(angle)+cx
     y_new = (x-cx)*sin(angle) + (y-cy)*sin(angle)+cy
     """
-    
+
     cx    = float(cx)
     cy    = float(cy)
     w     = float(w)
@@ -79,7 +79,7 @@ def xy_rotate_box(cx,cy,w,h,angle):
     x3,y3 = rotate(cx+w/2,cy+h/2,angle,cx,cy)
     x4,y4 = rotate(cx-w/2,cy+h/2,angle,cx,cy)
     return x1,y1,x2,y2,x3,y3,x4,y4
- 
+
 from numpy import cos,sin
 def rotate(x,y,angle,cx,cy):
     """
@@ -102,14 +102,14 @@ def resize_box(boxes,scale):
         angle = box['angle']
         newBoxes.append({'cx':cx,'cy':cy,'w':w,'h':h,'angle':angle})
     return newBoxes
-        
+
 def resize_im(w,h, scale=416, max_scale=608):
     f=float(scale)/min(h, w)
     if max_scale is not None:
         if  f*max(h, w)>max_scale:
             f=float(max_scale)/max(h, w)
     newW,newH = int(w*f),int(h*f)
-    
+
     return newW-(newW%32),newH-(newH%32)
 
 
@@ -118,9 +118,9 @@ def get_rorate(boxes,im,degree=0):
     获取旋转角度后的box及im
     """
     imgW,imgH = im.size
-    newBoxes = []       
+    newBoxes = []
     for line in boxes:
-         cx0,cy0 = imgW/2.0,imgH/2.0 
+         cx0,cy0 = imgW/2.0,imgH/2.0
          x1,y1,x2,y2,x3,y3,x4,y4 = xy_rotate_box(**line)
          x1,y1  = rotate(x1,y1,-degree/180*np.pi,cx0,cy0)
          x2,y2  = rotate(x2,y2,-degree/180*np.pi,cx0,cy0)
@@ -141,13 +141,13 @@ def letterbox_image(image, size,fillValue=[128,128,128]):
     w, h = size
     new_w = int(image_w * min(w*1.0/image_w, h*1.0/image_h))
     new_h = int(image_h * min(w*1.0/image_w, h*1.0/image_h))
-    
+
     resized_image = cv2.resize(image,(new_w,new_h))
     if fillValue is None:
        fillValue = [int(x.mean()) for x in cv2.split(np.array(image))]
     boxed_image = np.zeros((size[1],size[0],3),dtype=np.uint8)
     boxed_image[:] = fillValue
-    boxed_image[:new_h,:new_w,:] =resized_image 
+    boxed_image[:new_h,:new_w,:] =resized_image
 
     return boxed_image,new_w/image_w
 
@@ -166,13 +166,13 @@ def box_rotate(box,angle=0,imgH=0,imgW=0):
         x2_,y2_ = y3,imgW-x3
         x3_,y3_ = y4,imgW-x4
         x4_,y4_ = y1,imgW-x1
-        
+
     elif angle==180:
         x1_,y1_ = imgW-x3,imgH-y3
         x2_,y2_ = imgW-x4,imgH-y4
         x3_,y3_ = imgW-x1,imgH-y1
         x4_,y4_ = imgW-x2,imgH-y2
-        
+
     elif angle==270:
         x1_,y1_ = imgH-y4,x4
         x2_,y2_ = imgH-y1,x1
@@ -180,16 +180,14 @@ def box_rotate(box,angle=0,imgH=0,imgW=0):
         x4_,y4_ = imgH-y3,x3
     else:
         x1_,y1_,x2_,y2_,x3_,y3_,x4_,y4_  = x1,y1,x2,y2,x3,y3,x4,y4
-        
+
     return (x1_,y1_,x2_,y2_,x3_,y3_,x4_,y4_)
 
 
-                                   
-                                
 def rotate_cut_img(im,box,leftAdjustAlph=0.0,rightAdjustAlph=0.0):
     angle,w,h,cx,cy = solve(box)
     degree_ = angle*180.0/np.pi
-    
+
     box = (max(1,cx-w/2-leftAdjustAlph*(w/2))##xmin
            ,cy-h/2,##ymin
            min(cx+w/2+rightAdjustAlph*(w/2),im.size[0]-1)##xmax
@@ -201,14 +199,13 @@ def rotate_cut_img(im,box,leftAdjustAlph=0.0,rightAdjustAlph=0.0):
     return tmpImg,box
 
 
-
 from scipy.ndimage import filters,interpolation
 from numpy import amin, amax
 def estimate_skew_angle(raw):
     """
     估计图像文字角度
     """
-    
+
     def resize_im(im, scale, max_scale=None):
         f=float(scale)/min(im.shape[0], im.shape[1])
         if max_scale!=None and f*max(im.shape[0], im.shape[1])>max_scale:
@@ -237,11 +234,9 @@ def estimate_skew_angle(raw):
         v = np.mean(roest,axis=1)
         v = np.var(v)
         estimates.append((v,a))
-    
+
     _,a = max(estimates)
     return a
-
-
 
 
 def sort_box(box):
@@ -256,7 +251,7 @@ def sort_box(box):
         box[index, 6] = x4
         box[index, 7] = y4
     """
-    
+
     box = sorted(box,key=lambda x:sum([x[1],x[3],x[5],x[7]]))
     return list(box)
 
@@ -268,7 +263,7 @@ def get_boxes( bboxes):
     text_recs=np.zeros((len(bboxes), 8), np.int)
     index = 0
     for box in bboxes:
-        
+
         b1 = box[6] - box[7] / 2
         b2 = box[6] + box[7] / 2
         x1 = box[0]
@@ -279,7 +274,7 @@ def get_boxes( bboxes):
         y3 = box[5] * box[0] + b2
         x4 = box[2]
         y4 = box[5] * box[2] + b2
-        
+
         disX = x2 - x1
         disY = y2 - y1
         width = np.sqrt(disX*disX + disY*disY)
@@ -307,7 +302,7 @@ def get_boxes( bboxes):
         text_recs[index, 6] = x4
         text_recs[index, 7] = y4
         index = index + 1
-        
+
     boxes = []
     for box in text_recs:
            x1,y1 = (box[0],box[1])
@@ -324,7 +319,7 @@ def get_boxes( bboxes):
 def union_rbox(result,alpha=0.1):
     """
     按行合并box
-    """            
+    """
     def diff(box1,box2):
         """
         计算box1,box2之间的距离
@@ -333,13 +328,13 @@ def union_rbox(result,alpha=0.1):
         cy2 = box2['cy']
         h1  = box1['h']
         h2 = box2['h']
-        
+
         return abs(cy1-cy2)/max(0.01,min(h1/2,h2/2))
-    
+
     def sort_group_box(boxes):
         """
         对box进行排序, 并合并box
-        """   
+        """
         N = len(boxes)
         boxes = sorted(boxes,key=lambda x:x['cx'])
         text  = ' '.join([bx['text'] for bx in boxes])
@@ -352,7 +347,7 @@ def union_rbox(result,alpha=0.1):
             h = boxes[i]['h']
             x1,y1,x2,y2,x3,y3,x4,y4 = xy_rotate_box(cx, cy, w, h, degree/180*np.pi)
             box4[i] = [x1,y1,x2,y2,x3,y3,x4,y4]
-            
+
         x1 = box4[:,0].min()
         y1 = box4[:,1].min()
         x2 = box4[:,2].max()
@@ -363,8 +358,8 @@ def union_rbox(result,alpha=0.1):
         y4 = box4[:,7].max()
         angle,w,h,cx,cy = solve([x1,y1,x2,y2,x3,y3,x4,y4])
         return {'text':text,'cx':cx,'cy':cy,'w':w,'h':h,'degree':angle/np.pi*180}
-    
-    
+
+
 
     newBox = []
     for line in result:
@@ -375,14 +370,14 @@ def union_rbox(result,alpha=0.1):
             for box in newBox[-1]:
                 if diff(line,box)>alpha:
                     check = True
-                    
+
             if not check:
                 newBox[-1].append(line)
             else:
                 newBox.append([line])
     newBox = [sort_group_box(bx) for bx in newBox]
     return newBox
-            
+
 
 def adjust_box_to_origin(img,angle, result):
     """
@@ -391,7 +386,7 @@ def adjust_box_to_origin(img,angle, result):
     h,w = img.shape[:2]
     if angle in [90,270]:
         imgW,imgH = img.shape[:2]
-        
+
     else:
         imgH,imgW= img.shape[:2]
     newresult = []
@@ -405,7 +400,5 @@ def adjust_box_to_origin(img,angle, result):
         x1,y1,x2,y2,x3,y3,x4,y4 = box_rotate([x1,y1,x2,y2,x3,y3,x4,y4],angle=(360-angle)%360,imgH=imgH,imgW=imgW)
         box = x1,y1,x2,y2,x3,y3,x4,y4
         newresult.append({'name':line['name'],'text':line['text'],'box':box})
-       
+
     return newresult
-
-
